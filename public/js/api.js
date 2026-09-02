@@ -1,5 +1,5 @@
 // Shared API helper for all frontend pages
-const API_BASE = '/api';
+const API_BASE = 'https://masterbuilders-5zhc.onrender.com/api';
 
 function getToken() { return localStorage.getItem('mis_token'); }
 function getUser() { try { return JSON.parse(localStorage.getItem('mis_user')); } catch { return null; } }
