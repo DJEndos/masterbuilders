@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Login — Masterbuilder International School</title>
+<link rel="stylesheet" href="/public/css/style.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">
+    <img src="/public/assets/logo.jpg" alt="logo" />
+    <div><h1>Masterbuilder International School</h1><span>...Assuring Success</span></div>
+  </div>
+  <a href="/public/index.html" style="color:#fff;font-size:13px;">&larr; Back home</a>
+</div>
+
+<div class="container">
+  <div class="login-box card">
+    <h2><i class="fa-solid fa-shield-halved"></i> Admin Login</h2>
+    <div id="alertBox"></div>
+    <form id="loginForm">
+      <label>Email Address</label>
+      <input type="email" id="email" required placeholder="admin@masterbuilderschool.com" />
+      <label>Password</label>
+      <input type="password" id="password" required placeholder="Enter your password" />
+      <button type="submit" class="btn" style="width:100%;margin-top:20px;" id="submitBtn">Login</button>
+    </form>
+    <p class="small-muted">Admin accounts are created by the school's system administrator only.</p>
+  </div>
+</div>
+
+<script src="/public/js/api.js"></script>
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const alertBox = document.getElementById('alertBox');
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Logging in...';
+  try {
+    const data = await apiRequest('/auth/login', {
+      method: 'POST', auth: false,
+      body: { email: document.getElementById('email').value.trim(), password: document.getElementById('password').value }
+    });
+    if (data.user.role !== 'admin') throw new Error('This account is not an Admin account.');
+    setSession(data.token, data.user);
+    window.location.href = '/admin/dashboard.html';
+  } catch (err) {
+    showAlert(alertBox, err.message);
+    btn.disabled = false; btn.innerHTML = 'Login';
+  }
+});
+</script>
+</body>
+</html>
