@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Teacher Dashboard — Masterbuilder International School</title>
+<link rel="stylesheet" href="/public/css/style.css" />
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">
+    <img src="/assets/logo.jpg" alt="logo" />
+    <div><h1>Masterbuilder International School</h1><span>Teacher Dashboard</span></div>
+  </div>
+  <div class="user-info">
+    <span id="teacherName"></span>
+    <button class="logout" onclick="doLogout()">Logout</button>
+  </div>
+</div>
+
+<div class="container">
+  <div id="alertBox"></div>
+
+  <div class="card">
+    <h2>Select Class & Term</h2>
+    <div class="grid grid-3">
+      <div><label>Class</label><select id="classSelect"></select></div>
+      <div><label>Academic Session</label><input type="text" id="sessionInput" placeholder="e.g. 2025/2026" value="2025/2026" /></div>
+      <div><label>Term</label>
+        <select id="termSelect">
+          <option value="First">First Term</option>
+          <option value="Second">Second Term</option>
+          <option value="Third">Third Term</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn orange" style="margin-top:16px;" onclick="loadClassStudents()">Load Students</button>
+    <button class="btn outline sm" style="margin-top:16px;" onclick="computePositions()">Recompute Class Positions</button>
+  </div>
+
+  <div class="card" style="margin-top:20px;" id="studentsCard" style="display:none;">
+    <h2>Students</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Student ID</th><th>Name</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="studentsBody"><tr><td colspan="4">Select a class and click "Load Students".</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Score Entry Modal -->
+<div class="modal-overlay" id="scoreModal">
+  <div class="modal" style="max-width:720px;">
+    <button class="modal-close" onclick="closeModal('scoreModal')">&times;</button>
+    <h2 id="scoreModalTitle">Enter Scores</h2>
+    <div id="scoreModalAlert"></div>
+    <form id="scoreForm">
+      <input type="hidden" id="scoreStudentId" />
+      <h3 style="font-size:14px;margin-bottom:6px;">Subjects</h3>
+      <div class="table-wrap">
+        <table id="subjectsTable">
+          <thead><tr><th>Subject</th><th>CA1 (20)</th><th>CA2 (20)</th><th>Exam (60)</th><th>Total</th><th>Grade</th><th></th></tr></thead>
+          <tbody id="subjectsBody"></tbody>
+        </table>
+      </div>
+      <button type="button" class="btn sm outline" style="margin-top:10px;" onclick="addSubjectRow()">+ Add Subject</button>
+
+      <h3 style="font-size:14px;margin:18px 0 6px;">Attendance</h3>
+      <div class="grid grid-3">
+        <div><label>Days Present</label><input type="number" id="attPresent" min="0" value="0" /></div>
+        <div><label>Days Absent</label><input type="number" id="attAbsent" min="0" value="0" /></div>
+        <div><label>Total School Days</label><input type="number" id="attTotal" min="0" value="0" /></div>
+      </div>
+
+      <h3 style="font-size:14px;margin:18px 0 6px;">Psychomotor Skills (1-5)</h3>
+      <div id="psychomotorList"></div>
+
+      <h3 style="font-size:14px;margin:18px 0 6px;">Affective Traits (1-5)</h3>
+      <div id="affectiveList"></div>
+
+      <label style="margin-top:16px;">Class Teacher's Comment</label>
+      <textarea id="classTeacherComment" placeholder="e.g. A brilliant and hardworking student. Keep it up!"></textarea>
+
+      <label>Next Term Begins</label>
+      <input type="date" id="nextTermBegins" />
+
+      <button type="submit" class="btn orange" style="width:100%;margin-top:18px;">Save Result</button>
+    </form>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/teacher.js"></script>
+</body>
+</html>
