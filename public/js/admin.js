@@ -53,7 +53,7 @@ async function loadStudents() {
         <td>${escapeHtml(s.fullName)}</td>
         <td>${escapeHtml(s.class)}</td>
         <td>${escapeHtml(s.section)}</td>
-        <td>${escapeHtml(s.parentName || '—')}</td>
+        <td>${escapeHtml(s.parentName || 'â€”')}</td>
         <td>
           <button class="btn sm outline" onclick='editStudent(${JSON.stringify(s)})'>Edit</button>
           <button class="btn sm orange" onclick="resetPIN('${s._id}', '${escapeHtml(s.studentID)}')">Reset PIN</button>
@@ -154,7 +154,7 @@ async function loadTeachers() {
       <tr>
         <td>${escapeHtml(t.name)}</td>
         <td>${escapeHtml(t.email)}</td>
-        <td>${(t.assignedClasses || []).map(escapeHtml).join(', ') || '—'}</td>
+        <td>${(t.assignedClasses || []).map(escapeHtml).join(', ') || 'â€”'}</td>
         <td><span class="badge ${t.isActive ? 'published' : 'draft'}">${t.isActive ? 'Active' : 'Disabled'}</span></td>
         <td>
           <button class="btn sm outline" onclick='editTeacher(${JSON.stringify(t)})'>Edit</button>
@@ -183,7 +183,7 @@ function editTeacher(t) {
   document.getElementById('teacherEmail').disabled = true;
   document.getElementById('teacherPassword').required = false;
   document.getElementById('teacherPassword').value = '';
-  document.getElementById('teacherPasswordLabel').textContent = 'Password (leave blank to keep unchanged — not editable here)';
+  document.getElementById('teacherPasswordLabel').textContent = 'Password (leave blank to keep unchanged â€” not editable here)';
   document.getElementById('teacherPassword').disabled = true;
   document.getElementById('teacherPhone').value = t.phone || '';
   document.getElementById('teacherClasses').value = (t.assignedClasses || []).join(', ');
@@ -263,7 +263,7 @@ async function loadResults() {
 
     tbody.innerHTML = data.results.map(r => `
       <tr>
-        <td>${escapeHtml(r.student?.fullName || '—')} <br><span class="small-muted">${escapeHtml(r.student?.studentID || '')}</span></td>
+        <td>${escapeHtml(r.student?.fullName || 'â€”')} <br><span class="small-muted">${escapeHtml(r.student?.studentID || '')}</span></td>
         <td>${escapeHtml(r.class)}</td>
         <td>${escapeHtml(r.session)}</td>
         <td>${escapeHtml(r.term)}</td>
@@ -296,7 +296,7 @@ async function bulkPublish() {
   if (!session || !term || !cls) {
     return showAlert(document.getElementById('alertBox'), 'Select a specific Session, Term and Class above before bulk publishing.');
   }
-  if (!confirm(`Publish ALL draft results for ${cls} — ${term} Term, ${session}?`)) return;
+  if (!confirm(`Publish ALL draft results for ${cls} â€” ${term} Term, ${session}?`)) return;
   try {
     const data = await apiRequest('/admin/results/publish-class', { method: 'PUT', body: { session, term, class: cls } });
     showAlert(document.getElementById('alertBox'), `${data.modified} result(s) published.`, 'success');
@@ -304,13 +304,32 @@ async function bulkPublish() {
   } catch (err) { showAlert(document.getElementById('alertBox'), err.message); }
 }
 
-function previewPDF(id) {
+async function previewPDF(id) {
   const token = getToken();
-  // open in new tab; browser will not send Authorization header, so we fetch and open a blob instead
-  fetch(`/api/results/${id}/pdf`, { headers: { Authorization: `Bearer ${token}` } })
-    .then(res => res.blob())
-    .then(blob => window.open(window.URL.createObjectURL(blob), '_blank'))
-    .catch(() => showAlert(document.getElementById('alertBox'), 'Could not open PDF preview.'));
+  const alertBox = document.getElementById('alertBox');
+  try {
+    const res = await fetch(`/api/results/${id}/pdf`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) {
+      // Read the real error instead of silently opening it as a fake PDF.
+      // The server may return JSON (our own error) or plain/HTML (a platform-level
+      // error page, e.g. Vercel's 404) â€” handle both so the message is never blank.
+      let message = `Could not load PDF (HTTP ${res.status}).`;
+      try {
+        const data = await res.clone().json();
+        if (data && data.message) message = data.message;
+      } catch {
+        // Not JSON â€” leave the generic HTTP-status message as-is.
+      }
+      throw new Error(message);
+    }
+    const blob = await res.blob();
+    if (blob.type !== 'application/pdf') {
+      throw new Error('Server did not return a valid PDF file.');
+    }
+    window.open(window.URL.createObjectURL(blob), '_blank');
+  } catch (err) {
+    showAlert(alertBox, err.message || 'Could not open PDF preview.');
+  }
 }
 
 loadStats();
